@@ -1,0 +1,101 @@
+name: Databricks Medallion CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+
+jobs:
+  validate:
+    name: Validate Notebooks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install databricks-cli nbformat
+
+      - name: Validate notebook syntax
+        run: |
+          python -c "
+          import nbformat, glob, sys
+          notebooks = glob.glob('notebooks/**/*.ipynb', recursive=True)
+          errors = []
+          for nb in notebooks:
+              try:
+                  with open(nb) as f:
+                      nbformat.read(f, as_version=4)
+                  print(f'OK: {nb}')
+              except Exception as e:
+                  errors.append(f'FAIL: {nb}: {e}')
+          if errors:
+              print('\n'.join(errors))
+              sys.exit(1)
+          "
+
+  deploy-dev:
+    name: Deploy to Dev
+    needs: validate
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+
+      - name: Trigger Databricks Job (dev)
+        run: |
+          databricks jobs run-now \
+            --job-id ${{ vars.DATABRICKS_JOB_ID }} \
+            --notebook-params '{"target_catalog": "tpch_dev"}'
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+
+      - name: Trigger Databricks Job (staging)
+        run: |
+          databricks jobs run-now \
+            --job-id ${{ vars.DATABRICKS_JOB_ID }} \
+            --notebook-params '{"target_catalog": "tpch_staging"}'
+
+  deploy-prod:
+    name: Deploy to Prod
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+
+      - name: Trigger Databricks Job (prod)
+        run: |
+          databricks jobs run-now \
+            --job-id ${{ vars.DATABRICKS_JOB_ID }} \
+            --notebook-params '{"target_catalog": "tpch_prod"}'
