@@ -9,9 +9,9 @@ pr:
       - main
 
 variables:
-  DATABRICKS_HOST: $(DATABRICKS_HOST)
-  DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
-  DATABRICKS_JOB_ID: $(DATABRICKS_JOB_ID)
+  DBX_HOST: $(DATABRICKS_HOST)
+  DBX_TOKEN: $(DATABRICKS_TOKEN)
+  DBX_JOB_ID: $(DATABRICKS_JOB_ID)
 
 stages:
   - stage: Validate
@@ -56,12 +56,12 @@ stages:
           - script: |
               pip install databricks-cli
               databricks jobs run-now \
-                --job-id $(DATABRICKS_JOB_ID) \
+                --job-id $(DBX_JOB_ID) \
                 --notebook-params '{"target_catalog": "tpch_dev"}'
             displayName: Trigger Databricks Job dev
             env:
-              DATABRICKS_HOST: $(DATABRICKS_HOST)
-              DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
+              DATABRICKS_HOST: $(DBX_HOST)
+              DATABRICKS_TOKEN: $(DBX_TOKEN)
 
   - stage: DeployStaging
     displayName: Deploy to Staging
@@ -75,12 +75,12 @@ stages:
           - script: |
               pip install databricks-cli
               databricks jobs run-now \
-                --job-id $(DATABRICKS_JOB_ID) \
+                --job-id $(DBX_JOB_ID) \
                 --notebook-params '{"target_catalog": "tpch_staging"}'
             displayName: Trigger Databricks Job staging
             env:
-              DATABRICKS_HOST: $(DATABRICKS_HOST)
-              DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
+              DATABRICKS_HOST: $(DBX_HOST)
+              DATABRICKS_TOKEN: $(DBX_TOKEN)
 
   - stage: DeployProd
     displayName: Deploy to Prod
@@ -98,9 +98,9 @@ stages:
                 - script: |
                     pip install databricks-cli
                     databricks jobs run-now \
-                      --job-id $(DATABRICKS_JOB_ID) \
+                      --job-id $(DBX_JOB_ID) \
                       --notebook-params '{"target_catalog": "tpch_prod"}'
                   displayName: Trigger Databricks Job prod
                   env:
-                    DATABRICKS_HOST: $(DATABRICKS_HOST)
-                    DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
+                    DATABRICKS_HOST: $(DBX_HOST)
+                    DATABRICKS_TOKEN: $(DBX_TOKEN)
