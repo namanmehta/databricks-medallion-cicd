@@ -56,12 +56,13 @@ stages:
           - script: |
               pip install databricks-cli
               databricks jobs run-now \
-                --job-id $(DBX_JOB_ID) \
-                --notebook-params '{"target_catalog": "tpch_dev"}'
+                --job-id "$DBX_JOB_ID" \
+                --notebook-params "{\"target_catalog\": \"tpch_dev\"}"
             displayName: Trigger Databricks Job dev
             env:
               DATABRICKS_HOST: $(DBX_HOST)
               DATABRICKS_TOKEN: $(DBX_TOKEN)
+              DBX_JOB_ID: $(DBX_JOB_ID)
 
   - stage: DeployStaging
     displayName: Deploy to Staging
@@ -75,12 +76,13 @@ stages:
           - script: |
               pip install databricks-cli
               databricks jobs run-now \
-                --job-id $(DBX_JOB_ID) \
-                --notebook-params '{"target_catalog": "tpch_staging"}'
+                --job-id "$DBX_JOB_ID" \
+                --notebook-params "{\"target_catalog\": \"tpch_staging\"}"
             displayName: Trigger Databricks Job staging
             env:
               DATABRICKS_HOST: $(DBX_HOST)
               DATABRICKS_TOKEN: $(DBX_TOKEN)
+              DBX_JOB_ID: $(DBX_JOB_ID)
 
   - stage: DeployProd
     displayName: Deploy to Prod
@@ -98,9 +100,10 @@ stages:
                 - script: |
                     pip install databricks-cli
                     databricks jobs run-now \
-                      --job-id $(DBX_JOB_ID) \
-                      --notebook-params '{"target_catalog": "tpch_prod"}'
+                      --job-id "$DBX_JOB_ID" \
+                      --notebook-params "{\"target_catalog\": \"tpch_prod\"}"
                   displayName: Trigger Databricks Job prod
                   env:
                     DATABRICKS_HOST: $(DBX_HOST)
                     DATABRICKS_TOKEN: $(DBX_TOKEN)
+                    DBX_JOB_ID: $(DBX_JOB_ID)
