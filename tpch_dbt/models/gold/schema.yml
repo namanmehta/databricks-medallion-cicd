@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: revenue_by_region_quarter
+    description: Total revenue and line item count by region and quarter
+    columns:
+      - name: region_name
+        description: Region name
+        tests:
+          - not_null
+      - name: quarter
+        description: Quarter start date
+        tests:
+          - not_null
+      - name: total_revenue
+        description: Net revenue after discounts
+        tests:
+          - not_null
+
+  - name: supplier_performance
+    description: Total revenue and order volume by supplier
+    columns:
+      - name: supplier_key
+        description: Supplier primary key
+        tests:
+          - not_null
+          - unique
+      - name: supplier_name
+        tests:
+          - not_null
+      - name: total_revenue
+        tests:
+          - not_null
